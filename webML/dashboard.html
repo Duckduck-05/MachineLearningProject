@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - StockPredict</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --background-color: #000000;
+            --text-color: #ffffff;
+            --accent-color: #008800;
+            --card-bg-color: #111111;
+            --input-bg-color: #222222;
+            --positive-color: #00ff00;
+            --negative-color: #ff0000;
+            --secondary-color: #00aa00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--accent-color);
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--text-color);
+        }
+
+        .logo span {
+            color: var(--accent-color);
+        }
+
+        .logo a {
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: var(--accent-color);
+            color: var(--background-color);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            padding: 10px 0;
+            min-width: 150px;
+            display: none;
+            z-index: 100;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 8px 15px;
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: var(--accent-color);
+            color: var(--background-color);
+        }
+
+        .user-profile:hover .dropdown-menu {
+            display: block;
+        }
+
+        /* Dashboard Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        .watchlist {
+            margin-bottom: 30px;
+        }
+
+        .watchlist-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .watchlist-item:hover {
+            background-color: rgba(0, 255, 0, 0.05);
+        }
+
+        .watchlist-item.active {
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+
+        .ticker-symbol {
+            font-weight: bold;
+        }
+
+        .ticker-price {
+            display: flex;
+            align-items: center;
+        }
+
+        .price-change {
+            margin-left: 10px;
+            font-size: 0.8rem;
+        }
+
+        .positive {
+            color: var(--positive-color);
+        }
+
+        .negative {
+            color: var(--negative-color);
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .search-section {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            padding: 10px 15px;
+            border: 1px solid var(--accent-color);
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            border-radius: 4px;
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--accent-color);
+            color: var(--background-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: var(--text-color);
+        }
+
+        .loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin: 30px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 255, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--text-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stock-info {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stock-details h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .stock-price {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .stock-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+            color: rgba(0, 255, 0, 0.7);
+        }
+
+        .predictions-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .prediction-card {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .prediction-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+
+        .prediction-card h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        .prediction-value {
+            text-align: center;
+        }
+
+        .prediction-value p {
+            margin-bottom: 8px;
+        }
+
+        .chart-container {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 20px;
+            height: 400px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            border-top: 1px solid var(--accent-color);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .predictions-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                font-size: 1.5rem;
+                background: none;
+                border: none;
+                color: var(--text-color);
+                cursor: pointer;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <div class="logo"><a href="index.html">Stock<span>Predict</span></a></div>
+            <div class="nav-links">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="#">Portfolio</a>
+                <a href="#">Analytics</a>
+                <div class="user-profile">
+                    <div class="user-avatar">U</div>
+                    <span>User</span>
+                    <div class="dropdown-menu">
+                        <a href="#">Profile</a>
+                        <a href="#">Settings</a>
+                        <a href="index.html">Logout</a>
+                    </div>
+                </div>
+            </div>
+            <button class="mobile-menu-btn">☰</button>
+        </nav>
+
+        <div class="dashboard-grid">
+            <div class="sidebar">
+                <div class="watchlist">
+                    <h3>Watchlist</h3>
+                    <div class="watchlist-item active" data-ticker="AAPL">
+                        <div class="ticker-symbol">AAPL</div>
+                        <div class="ticker-price">
+                            <span>$175.34</span>
+                            <span class="price-change positive">+1.2%</span>
+                        </div>
+                    </div>
+                    <div class="watchlist-item" data-ticker="MSFT">
+                        <div class="ticker-symbol">MSFT</div>
+                        <div class="ticker-price">
+                            <span>$325.67</span>
+                            <span class="price-change positive">+0.8%</span>
+                        </div>
+                    </div>
+                    <div class="watchlist-item" data-ticker="GOOGL">
+                        <div class="ticker-symbol">GOOGL</div>
+                        <div class="ticker-price">
+                            <span>$142.89</span>
+                            <span class="price-change negative">-0.3%</span>
+                        </div>
+                    </div>
+                    <div class="watchlist-item" data-ticker="AMZN">
+                        <div class="ticker-symbol">AMZN</div>
+                        <div class="ticker-price">
+                            <span>$132.45</span>
+                            <span class="price-change positive">+2.1%</span>
+                        </div>
+                    </div>
+                    <div class="watchlist-item" data-ticker="TSLA">
+                        <div class="ticker-symbol">TSLA</div>
+                        <div class="ticker-price">
+                            <span>$245.78</span>
+                            <span class="price-change negative">-1.5%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="search-section">
+                    <input type="text" id="ticker-input" placeholder="Enter stock ticker (e.g., AAPL, MSFT)">
+                    <button id="search-btn">Search</button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Training models and fetching predictions...</p>
+                </div>
+
+                <div class="stock-info">
+                    <div class="stock-details">
+                        <h2>Apple Inc. (AAPL)</h2>
+                        <div class="stock-price">$175.34</div>
+                        <div class="stock-meta">
+                            <span>Volume: 58.2M</span>
+                            <span>Market Cap: $2.75T</span>
+                            <span>P/E Ratio: 28.5</span>
+                        </div>
+                    </div>
+                    <div class="stock-change positive">
+                        <div>+$2.10 (+1.2%)</div>
+                        <div>Today</div>
+                    </div>
+                </div>
+
+                <div class="predictions-container">
+                    <div class="prediction-card">
+                        <h3>Daily Prediction (KNN)</h3>
+                        <div class="prediction-value">
+                            <p>Predicted Price: <span id="daily-prediction">$177.45</span></p>
+                            <p>Change: <span class="positive">+1.2%</span></p>
+                            <p>Date: <span>2025-05-04</span></p>
+                        </div>
+                    </div>
+
+                    <div class="prediction-card">
+                        <h3>Monthly Prediction (Random Forest)</h3>
+                        <div class="prediction-value">
+                            <p>Predicted Price: <span id="monthly-prediction">$185.67</span></p>
+                            <p>Change: <span class="positive">+5.9%</span></p>
+                            <p>Date: <span>2025-06-03</span></p>
+                        </div>
+                    </div>
+
+                    <div class="prediction-card">
+                        <h3>Yearly Prediction (LSTM)</h3>
+                        <div class="prediction-value">
+                            <p>Predicted Price: <span id="yearly-prediction">$210.23</span></p>
+                            <p>Change: <span class="positive">+19.9%</span></p>
+                            <p>Date: <span>2026-05-03</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="price-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>StockPredict | Advanced Stock Price Prediction Tool | Using GSCP and IBM 500 datasets</p>
+    </footer>
+
+    <script>
+        // Simple mobile menu toggle
+        document.querySelector('.mobile-menu-btn')?.addEventListener('click', function() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        // Chart initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('price-chart').getContext('2d');
+            
+            // Sample data
+            const priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Current', 'Tomorrow', 'Next Week', 'Next Month', 'Next Quarter', 'Next Year'],
+                    datasets: [{
+                        label: 'AAPL Price Predictions',
+                        data: [175.34, 177.45, 180.12, 185.67, 195.30, 210.23],
+                        backgroundColor: 'rgba(0, 255, 0, 0.2)',
+                        borderColor: 'rgba(0, 255, 0, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(0, 255, 0, 1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0, 255, 0, 0.1)'
+                            },
+                            ticks: {
+                                color: '#00ff00'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 255, 0, 0.1)'
+                            },
+                            ticks: {
+                                color: '#00ff00'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#00ff00'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `$${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Watchlist item click handler
+            const watchlistItems = document.querySelectorAll('.watchlist-item');
+            watchlistItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all items
+                    watchlistItems.forEach(i => i.classList.remove('active'));
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // In a real app, this would fetch data for the selected ticker
+                    const ticker = this.getAttribute('data-ticker');
+                    console.log(`Selected ticker: ${ticker}`);
+                    
+                    // For demo purposes, we'll just update the UI with mock data
+                    updateUIForTicker(ticker);
+                });
+            });
+
+            // Search button click handler
+            document.getElementById('search-btn').addEventListener('click', function() {
+                const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+                if (ticker) {
+                    // Show loading
+                    document.getElementById('loading').style.display = 'flex';
+                    
+                    // Simulate API call delay
+                    setTimeout(() => {
+                        document.getElementById('loading').style.display = 'none';
+                        updateUIForTicker(ticker);
+                    }, 1500);
+                }
+            });
+
+            // Function to update UI for a ticker
+            function updateUIForTicker(ticker) {
+                // Mock data for different tickers
+                const tickerData = {
+                    'AAPL': {
+                        name: 'Apple Inc.',
+                        price: 175.34,
+                        change: 2.10,
+                        changePercent: 1.2,
+                        volume: '58.2M',
+                        marketCap: '2.75T',
+                        pe: 28.5,
+                        daily: 177.45,
+                        dailyChange: 1.2,
+                        monthly: 185.67,
+                        monthlyChange: 5.9,
+                        yearly: 210.23,
+                        yearlyChange: 19.9,
+                        chartData: [175.34, 177.45, 180.12, 185.67, 195.30, 210.23]
+                    },
+                    'MSFT': {
+                        name: 'Microsoft Corporation',
+                        price: 325.67,
+                        change: 2.56,
+                        changePercent: 0.8,
+                        volume: '22.5M',
+                        marketCap: '2.42T',
+                        pe: 32.1,
+                        daily: 328.90,
+                        dailyChange: 1.0,
+                        monthly: 340.25,
+                        monthlyChange: 4.5,
+                        yearly: 375.80,
+                        yearlyChange: 15.4,
+                        chartData: [325.67, 328.90, 332.45, 340.25, 355.10, 375.80]
+                    },
+                    'GOOGL': {
+                        name: 'Alphabet Inc.',
+                        price: 142.89,
+                        change: -0.45,
+                        changePercent: -0.3,
+                        volume: '25.7M',
+                        marketCap: '1.8T',
+                        pe: 24.3,
+                        daily: 143.56,
+                        dailyChange: 0.5,
+                        monthly: 148.75,
+                        monthlyChange: 4.1,
+                        yearly: 165.20,
+                        yearlyChange: 15.6,
+                        chartData: [142.89, 143.56, 145.20, 148.75, 155.40, 165.20]
+                    },
+                    'AMZN': {
+                        name: 'Amazon.com Inc.',
+                        price: 132.45,
+                        change: 2.75,
+                        changePercent: 2.1,
+                        volume: '35.2M',
+                        marketCap: '1.35T',
+                        pe: 40.2,
+                        daily: 134.80,
+                        dailyChange: 1.8,
+                        monthly: 140.25,
+                        monthlyChange: 5.9,
+                        yearly: 160.75,
+                        yearlyChange: 21.4,
+                        chartData: [132.45, 134.80, 136.90, 140.25, 150.10, 160.75]
+                    },
+                    'TSLA': {
+                        name: 'Tesla, Inc.',
+                        price: 245.78,
+                        change: -3.75,
+                        changePercent: -1.5,
+                        volume: '120.5M',
+                        marketCap: '780B',
+                        pe: 65.8,
+                        daily: 242.45,
+                        dailyChange: -1.4,
+                        monthly: 260.30,
+                        monthlyChange: 5.9,
+                        yearly: 310.25,
+                        yearlyChange: 26.2,
+                        chartData: [245.78, 242.45, 248.90, 260.30, 285.45, 310.25]
+                    }
+                };
+                
+                // Default data if ticker not found
+                const defaultData = {
+                    name: ticker,
+                    price: 100.00,
+                    change: 1.25,
+                    changePercent: 1.25,
+                    volume: '10.0M',
+                    marketCap: '500B',
+                    pe: 20.0,
+                    daily: 101.25,
+                    dailyChange: 1.25,
+                    monthly: 105.00,
+                    monthlyChange: 5.0,
+                    yearly: 120.00,
+                    yearlyChange: 20.0,
+                    chartData: [100.00, 101.25, 102.50, 105.00, 110.00, 120.00]
+                };
+                
+                // Get data for the ticker or use default
+                const data = tickerData[ticker] || defaultData;
+                
+                // Update stock info
+                document.querySelector('.stock-details h2').textContent = `${data.name} (${ticker})`;
+                document.querySelector('.stock-price').textContent = `$${data.price.toFixed(2)}`;
+                document.querySelector('.stock-meta').innerHTML = `
+                    <span>Volume: ${data.volume}</span>
+                    <span>Market Cap: $${data.marketCap}</span>
+                    <span>P/E Ratio: ${data.pe}</span>
+                `;
+                
+                // Update stock change
+                const stockChange = document.querySelector('.stock-change');
+                stockChange.className = 'stock-change';
+                stockChange.classList.add(data.changePercent >= 0 ? 'positive' : 'negative');
+                stockChange.innerHTML = `
+                    <div>${data.changePercent >= 0 ? '+' : ''}$${Math.abs(data.change).toFixed(2)} (${data.changePercent >= 0 ? '+' : ''}${data.changePercent.toFixed(1)}%)</div>
+                    <div>Today</div>
+                `;
+                
+                // Update predictions
+                document.getElementById('daily-prediction').textContent = `$${data.daily.toFixed(2)}`;
+                document.getElementById('daily-prediction').nextElementSibling.innerHTML = `Change: <span class="${data.dailyChange >= 0 ? 'positive' : 'negative'}">${data.dailyChange >= 0 ? '+' : ''}${data.dailyChange.toFixed(1)}%</span>`;
+                
+                document.getElementById('monthly-prediction').textContent = `$${data.monthly.toFixed(2)}`;
+                document.getElementById('monthly-prediction').nextElementSibling.innerHTML = `Change: <span class="${data.monthlyChange >= 0 ? 'positive' : 'negative'}">${data.monthlyChange >= 0 ? '+' : ''}${data.monthlyChange.toFixed(1)}%</span>`;
+                
+                document.getElementById('yearly-prediction').textContent = `$${data.yearly.toFixed(2)}`;
+                document.getElementById('yearly-prediction').nextElementSibling.innerHTML = `Change: <span class="${data.yearlyChange >= 0 ? 'positive' : 'negative'}">${data.yearlyChange >= 0 ? '+' : ''}${data.yearlyChange.toFixed(1)}%</span>`;
+                
+                // Update chart
+                priceChart.data.datasets[0].label = `${ticker} Price Predictions`;
+                priceChart.data.datasets[0].data = data.chartData;
+                priceChart.update();
+            }
+        });
+    </script>
+</body>
+</html>

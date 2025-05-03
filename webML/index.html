@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockPredict - AI Stock Market Prediction</title>
+    <style>
+        :root {
+            --background-color: #000000;
+            --text-color: #ffffff;
+            --accent-color: #008800;
+            --card-bg-color: #111111;
+            --input-bg-color: #222222;
+            --positive-color: #00ff00;
+            --negative-color: #ff0000;
+            --secondary-color: #00aa00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--accent-color);
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--text-color);
+        }
+
+        .logo span {
+            color: var(--accent-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: var(--accent-color);
+            color: var(--background-color);
+        }
+
+        .nav-links .login-btn {
+            border: 1px solid var(--accent-color);
+        }
+
+        /* Hero Section */
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 60px 0;
+            margin-bottom: 60px;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px var(--text-color);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin-bottom: 40px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: var(--background-color);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--text-color);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--accent-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--accent-color);
+            color: var(--background-color);
+        }
+
+        /* Features Section */
+        .features {
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 40px;
+            text-shadow: 0 0 10px var(--text-color);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 15px;
+        }
+
+        /* Models Section */
+        .models {
+            margin-bottom: 60px;
+        }
+
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .model-card {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .model-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+
+        .model-card h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        /* Terminal Effect */
+        .terminal-effect {
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .terminal-header {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background-color: var(--background-color);
+            padding: 0 10px;
+            font-size: 0.9rem;
+            color: var(--accent-color);
+        }
+
+        .terminal-content {
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+        }
+
+        .terminal-content p {
+            margin-bottom: 10px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background-color: var(--text-color);
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* CTA Section */
+        .cta-section {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px;
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+        }
+
+        .cta-section h2 {
+            margin-bottom: 20px;
+        }
+
+        .cta-section p {
+            margin-bottom: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 1px solid var(--accent-color);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .cta-buttons {
+                flex-direction: column;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+                font-size: 1.5rem;
+                background: none;
+                border: none;
+                color: var(--text-color);
+                cursor: pointer;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <div class="logo">Stock<span>Predict</span></div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="#features">Features</a>
+                <a href="#models">Models</a>
+                <a href="login.html" class="login-btn">Login</a>
+                <a href="register.html" class="btn btn-primary">Sign Up</a>
+            </div>
+            <button class="mobile-menu-btn">☰</button>
+        </nav>
+
+        <section class="hero">
+            <h1>Predict Stock Prices with AI</h1>
+            <p>Use advanced machine learning models to predict stock prices for the next day, month, and year. Our platform combines KNN, Random Forest, and LSTM models to provide accurate predictions based on GSCP and IBM 500 datasets.</p>
+            <div class="cta-buttons">
+                <a href="register.html" class="btn btn-primary">Get Started</a>
+                <a href="dashboard.html" class="btn btn-secondary">Try Demo</a>
+            </div>
+        </section>
+
+        <section class="features" id="features">
+            <h2 class="section-title">Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>Multi-timeframe Predictions</h3>
+                    <p>Get predictions for different time horizons: next day, next month, and next year.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Advanced AI Models</h3>
+                    <p>Leverage the power of KNN, Random Forest, and LSTM models for accurate predictions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Interactive Visualizations</h3>
+                    <p>View predictions through intuitive charts and visualizations.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="terminal-effect">
+            <div class="terminal-header">terminal</div>
+            <div class="terminal-content">
+                <p>> Initializing StockPredict AI...</p>
+                <p>> Loading market data from GSCP and IBM 500 datasets...</p>
+                <p>> Training KNN model for daily predictions...</p>
+                <p>> Training Random Forest model for monthly predictions...</p>
+                <p>> Training LSTM model for yearly predictions...</p>
+                <p>> All models ready. Enter ticker symbol to begin prediction <span class="cursor"></span></p>
+            </div>
+        </section>
+
+        <section class="models" id="models">
+            <h2 class="section-title">Our Prediction Models</h2>
+            <div class="models-grid">
+                <div class="model-card">
+                    <h3>KNN Model</h3>
+                    <p>Our K-Nearest Neighbors model analyzes historical patterns similar to current market conditions to predict tomorrow's stock price with high accuracy.</p>
+                    <p>Best for: <strong>Daily predictions</strong></p>
+                </div>
+                <div class="model-card">
+                    <h3>Random Forest</h3>
+                    <p>The Random Forest model combines multiple decision trees to create robust predictions that account for market volatility and trends.</p>
+                    <p>Best for: <strong>Monthly predictions</strong></p>
+                </div>
+                <div class="model-card">
+                    <h3>LSTM Neural Network</h3>
+                    <p>Our Long Short-Term Memory neural network captures complex long-term dependencies in market data for accurate yearly forecasts.</p>
+                    <p>Best for: <strong>Yearly predictions</strong></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <h2>Ready to Predict the Market?</h2>
+            <p>Sign up now to access our advanced stock prediction tools and make more informed investment decisions.</p>
+            <a href="register.html" class="btn btn-primary">Create Free Account</a>
+        </section>
+    </div>
+
+    <footer>
+        <p>StockPredict | Advanced Stock Price Prediction Tool | Using GSCP and IBM 500 datasets</p>
+    </footer>
+
+    <script>
+        // Simple mobile menu toggle
+        document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        // Terminal typing effect
+        const terminalLines = document.querySelectorAll('.terminal-content p');
+        let lineIndex = 0;
+
+        function typeNextLine() {
+            if (lineIndex < terminalLines.length) {
+                const line = terminalLines[lineIndex];
+                line.style.display = 'block';
+                lineIndex++;
+                setTimeout(typeNextLine, 800);
+            }
+        }
+
+        // Hide all lines initially except the first one
+        for (let i = 1; i < terminalLines.length; i++) {
+            terminalLines[i].style.display = 'none';
+        }
+
+        // Start typing effect after a short delay
+        setTimeout(typeNextLine, 1000);
+    </script>
+</body>
+</html>
