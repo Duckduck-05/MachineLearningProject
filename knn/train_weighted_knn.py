@@ -110,42 +110,42 @@ def report():
     print("\nValidation Metrics:")
     print(*[f"{val:.3f}" for val in res_val])
 
-    # # Lưu vào file CSV cho validation
-    # df_val = pd.DataFrame(metrics_data_val)
-    # output_path_val = os.path.join(os.path.expanduser("~/Documents"), "knn", "metrics_table_val.csv")
-    # df_val.to_csv(output_path_val, index=False)
-    # print(f"\nValidation metrics table saved to {output_path_val}")
+    # Lưu vào file CSV cho validation
+    df_val = pd.DataFrame(metrics_data_val)
+    output_path_val = os.path.join(os.path.expanduser("~/Documents"), "knn", "evaluate", "metrics_table_val.csv")
+    df_val.to_csv(output_path_val, index=False)
+    print(f"\nValidation metrics table saved to {output_path_val}")
 
-    # # Dự đoán giá cổ phiếu trên tập test
-    # predicted_prices_test = []
-    # current_idx = 0
-    # profit_rate = np.median([(close_prices[j + 1] / close_prices[j]) - 1 for j in range(len(close_prices) - 1)])
-    # for i in range(len(test_data)):
-    #     x = torch.tensor(test_data[i], dtype=torch.float32).unsqueeze(0)
-    #     prediction = knn.predict(x, reduction="score")
-    #     predicted_label = prediction[1][0]
-    #     last_price = test_actual_prices[current_idx - 1] if current_idx > 0 else test_actual_prices[0]
-    #     if predicted_label == 1:
-    #         predicted_price = last_price * (1 + profit_rate)
-    #     else:
-    #         predicted_price = last_price * (1 - profit_rate)
-    #     predicted_prices_test.append(predicted_price)
-    #     current_idx += 1
+    # Dự đoán giá cổ phiếu trên tập test
+    predicted_prices_test = []
+    current_idx = 0
+    profit_rate = np.median([(close_prices[j + 1] / close_prices[j]) - 1 for j in range(len(close_prices) - 1)])
+    for i in range(len(test_data)):
+        x = torch.tensor(test_data[i], dtype=torch.float32).unsqueeze(0)
+        prediction = knn.predict(x, reduction="score")
+        predicted_label = prediction[1][0]
+        last_price = test_actual_prices[current_idx - 1] if current_idx > 0 else test_actual_prices[0]
+        if predicted_label == 1:
+            predicted_price = last_price * (1 + profit_rate)
+        else:
+            predicted_price = last_price * (1 - profit_rate)
+        predicted_prices_test.append(predicted_price)
+        current_idx += 1
 
-    # # Prediction plot
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(test_actual_prices, label='Test Target', color='blue')
-    # plt.plot(predicted_prices_test, label='Predicted Target', color='orange')
-    # plt.xlabel('Day')
-    # plt.ylabel('Close Price ($)')
-    # plt.legend()
-    # plt.grid(True)
-    # output_dir = os.path.join(os.path.expanduser("~/Documents"), "knn", "prediction")
-    # os.makedirs(output_dir, exist_ok=True)
-    # plot_path_test = os.path.join(output_dir, "stock_price_prediction_test.png")
-    # plt.savefig(plot_path_test)
-    # plt.close()
-    # print(f"Prediction chart for test saved to {plot_path_test}")
+    # Prediction plot
+    plt.figure(figsize=(10, 6))
+    plt.plot(test_actual_prices, label='Test Target', color='blue')
+    plt.plot(predicted_prices_test, label='Predicted Target', color='orange')
+    plt.xlabel('Day')
+    plt.ylabel('Close Price ($)')
+    plt.legend()
+    plt.grid(True)
+    output_dir = os.path.join(os.path.expanduser("~/Documents"), "knn", "prediction")
+    os.makedirs(output_dir, exist_ok=True)
+    plot_path_test = os.path.join(output_dir, "stock_price_prediction_test.png")
+    plt.savefig(plot_path_test)
+    plt.close()
+    print(f"Prediction chart for test saved to {plot_path_test}")
 
 if __name__ == '__main__':
     knn.train(100, 10)  # 100 epochs, in progress every 10 epochs
