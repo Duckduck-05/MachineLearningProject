@@ -1,5 +1,4 @@
 import logging
-
 import torch
 import numpy as np
 from matplotlib import pyplot as plt
@@ -20,21 +19,22 @@ code = "^GSPC"
 start_day = "2020-01-01"
 end_day = "2025-01-01"
 cols = ["Close"]
-seq_length = 180
-split_ratio = [0.7, 0.3]
+seq_length = 10
+split_ratio = [0.60, 0.20, 0.20]
 profit_rate = 0.03
 use_median = True
-prediction_step = 30
+prediction_step = 1
 
 transform = standardize
-split_func = sequential_split
+split_func = random_split
 
 # K-NN params
-k = 1000
+k = 6  # Updated to a more reasonable value
 
 # Autoencoder params
-latent_size = 12
+latent_size = 5  # Updated to a more suitable value
 
 # Other params
-batch_size = 300
-wknn_train_split_ratio = 0.99
+batch_size = 64  # Updated to a more suitable value
+wknn_train_split_ratio = 0.8
+learning_rate = 0.05
