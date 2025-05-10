@@ -1,2 +1,0 @@
-Latent size,Top 5% (84/1670 samples) Accuracy,Precision,Recall,Top 10% (167/1670 samples) Accuracy,Precision,Recall,Top 25% (417/1670 samples) Accuracy,Precision,Recall,Top 100% (1670/1670 samples) Accuracy,Precision,Recall
-12,0.75,0.75,1.00,0.75,0.75,1.00,0.62,0.62,1.00,0.35,0.35,1.00
