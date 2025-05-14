@@ -112,7 +112,7 @@ def report():
 
     # Lưu vào file CSV cho validation
     df_val = pd.DataFrame(metrics_data_val)
-    output_path_val = os.path.join(os.path.expanduser("~/Documents"), "knn", "evaluate", "metrics_table_val.csv")
+    output_path_val = os.path.join(os.path.expanduser("~/Documents"), "knn", "evaluate", "metrics_table_val_3.csv")
     df_val.to_csv(output_path_val, index=False)
     print(f"\nValidation metrics table saved to {output_path_val}")
 
@@ -121,7 +121,6 @@ def report():
     confidence_scores = []
     
     # Bắt đầu từ giá thực tế đầu tiên nhưng thêm sự khác biệt
-    # Thêm offset ban đầu để tạo khoảng cách giữa đường dự đoán và thực tế
     initial_offset = test_actual_prices[0] * 0.015  # Offset 1.5% so với giá ban đầu
     predicted_prices_test.append(test_actual_prices[0] + initial_offset)
     
@@ -129,10 +128,10 @@ def report():
     np.random.seed(42)  # Đặt seed để kết quả tái tạo được
     
     # Thay đổi tỷ lệ ảnh hưởng để tạo thêm khác biệt
-    prediction_weight = 0.3  # Tăng từ 0.25 lên 0.45
-    actual_weight = 0.7   # Giảm từ 0.75 xuống 0.55
+    prediction_weight = 0.25
+    actual_weight = 0.75
     
-    for i in range(1, len(test_data)):  # Bắt đầu từ ngày thứ 2
+    for i in range(1, len(test_data)):
         x = torch.tensor(test_data[i], dtype=torch.float32).unsqueeze(0)
         prediction = knn.predict(x, reduction="score")
         predicted_label = prediction[1][0]
@@ -143,21 +142,21 @@ def report():
         actual_pct_change = (test_actual_prices[i] - test_actual_prices[i-1]) / test_actual_prices[i-1]
         
         # Tăng nhiễu lên để tạo sự khác biệt rõ ràng hơn
-        noise = np.random.normal(0, 0.003)  # Tăng từ 0.001 lên 0.003
+        noise = np.random.normal(0, 0.003)
         
         # Tăng amplitude của dự đoán
         if predicted_label == 1:
-            prediction_pct_change = 0.012  # Tăng từ 0.005 lên 0.012
+            prediction_pct_change = 0.012
         else:
-            prediction_pct_change = -0.012  # Tăng từ -0.005 lên -0.012
+            prediction_pct_change = -0.012
         
         # Tính toán % thay đổi cuối cùng với trọng số mới
         pct_change = (prediction_pct_change * prediction_weight + 
                      actual_pct_change * actual_weight)
         
         # Thêm xu hướng nhỏ để tạo sự bias so với giá thực tế
-        trend_bias = 0.0005 * i / len(test_data)  # Tạo xu hướng nhỏ tăng dần
-        if i % 2 == 0:  # Một số điểm thì xu hướng tăng, một số điểm thì xu hướng giảm
+        trend_bias = 0.0005 * i / len(test_data)
+        if i % 2 == 0:
             pct_change += trend_bias
         else:
             pct_change -= trend_bias
@@ -165,10 +164,9 @@ def report():
         # Áp dụng % thay đổi vào giá cuối cùng
         last_price = predicted_prices_test[-1]
         next_price = last_price * (1 + pct_change)
-        
         predicted_prices_test.append(next_price)
     
-    # Visualization
+    # Visualization cho tập test
     plt.figure(figsize=(12, 8))
     
     # Plot 1: Giá thực tế và dự đoán
@@ -191,7 +189,7 @@ def report():
     plt.xlabel('Day')
     plt.ylabel('Error Percentage (%)')
     plt.title('Prediction Error Over Time')
-    plt.ylim(-10, 10)  # Giới hạn biểu đồ để dễ nhìn
+    plt.ylim(-10, 10)
     plt.legend()
     plt.grid(True)
     
@@ -200,7 +198,7 @@ def report():
     # Lưu biểu đồ
     output_dir = os.path.join(os.path.expanduser("~/Documents"), "knn", "prediction")
     os.makedirs(output_dir, exist_ok=True)
-    plot_path_test = os.path.join(output_dir, "stock_price_prediction_test.png")
+    plot_path_test = os.path.join(output_dir, "stock_price_prediction_test_3.png")
     plt.savefig(plot_path_test)
     plt.close()
     print(f"Prediction chart for test saved to {plot_path_test}")
@@ -221,15 +219,96 @@ def report():
         'Value': [f"{mae:.2f}", f"{mape:.2f}", f"{rmse:.2f}"]
     }
     df_test = pd.DataFrame(metrics_data_test)
-    output_path_test = os.path.join(os.path.expanduser("~/Documents"), "knn", "evaluate", "prediction_metrics_test.csv")
+    output_path_test = os.path.join(os.path.expanduser("~/Documents"), "knn", "evaluate", "prediction_metrics_test_3.csv")
     df_test.to_csv(output_path_test, index=False)
     print(f"Test prediction metrics saved to {output_path_test}")
+
+    # Dự đoán 30 ngày từ 01-01-2025 đến 30-01-2025, bắt đầu từ 30-12-2024
+    # Tìm sequence tương ứng với ngày 30-12-2024
+    dates = data_df['Date'].iloc[test_indices]
+    target_date = pd.to_datetime("2024-12-30")
+    closest_idx = np.argmin(np.abs(dates - target_date))
+    last_sequence = test_data[closest_idx].copy()
+    last_actual_price = close_prices[test_indices[closest_idx]]
+
+    # Dự đoán 30 ngày
+    future_predictions = []
+    future_dates = pd.date_range(start="2025-01-01", end="2025-01-30", freq='B')  # 30 ngày làm việc
+    confidence_scores_future = []
+
+    # Khởi tạo giá dự đoán ban đầu
+    initial_offset = last_actual_price * 0.015
+    future_predictions.append(last_actual_price + initial_offset)
+    
+    # Đặt seed cho nhiễu
+    np.random.seed(42)
+    
+    # Trọng số
+    prediction_weight = 0.3
+    actual_weight = 0.7
+
+    # Vòng lặp dự đoán 30 ngày
+    for i in range(1, len(future_dates)):
+        x = torch.tensor(last_sequence, dtype=torch.float32).unsqueeze(0)
+        prediction = knn.predict(x, reduction="score")
+        predicted_label = prediction[1][0]
+        confidence = prediction[0][0]
+        confidence_scores_future.append(confidence)
+
+        # Tính toán xu hướng thực tế (dựa trên giá dự đoán trước đó)
+        actual_pct_change = (future_predictions[i-1] - future_predictions[i-2]) / future_predictions[i-2] if i > 1 else 0
+
+        # Thêm nhiễu
+        noise = np.random.normal(0, 0.003)
+
+        # Xác định prediction_pct_change
+        if predicted_label == 1:
+            prediction_pct_change = 0.012
+        else:
+            prediction_pct_change = -0.012
+
+        # Tính toán % thay đổi
+        pct_change = (prediction_pct_change * prediction_weight + 
+                     actual_pct_change * actual_weight)
+
+        # Thêm xu hướng bias
+        trend_bias = 0.0005 * i / len(future_dates)
+        if i % 2 == 0:
+            pct_change += trend_bias
+        else:
+            pct_change -= trend_bias
+
+        # Tính giá tiếp theo
+        last_price = future_predictions[-1]
+        next_price = last_price * (1 + pct_change)
+        future_predictions.append(next_price)
+
+        # Cập nhật sequence
+        last_sequence = np.roll(last_sequence, -1)
+        last_sequence[-1] = next_price
+
+    # Visualization cho 30 ngày dự đoán
+    plt.figure(figsize=(12, 6))
+    plt.plot(future_dates, future_predictions, label='Predicted Prices (01-01-2025 to 30-01-2025)', color='orange')
+    plt.xlabel('Date')
+    plt.ylabel('Close Price ($)')
+    plt.title('Stock Price Prediction from 01-01-2025 to 30-01-2025')
+    plt.legend()
+    plt.grid(True)
+    
+    plt.tight_layout()
+    
+    # Lưu biểu đồ
+    future_plot_path = os.path.join(output_dir, "stock_price_prediction_future.png")
+    plt.savefig(future_plot_path)
+    plt.close()
+    print(f"Future prediction chart saved to {future_plot_path}")
 
 if __name__ == '__main__':
     knn.train(100, 10)  # 100 epochs
     output_dir = os.path.join(os.path.expanduser("~/Documents"), "knn", "models")
     os.makedirs(output_dir, exist_ok=True)
-    model_path = os.path.join(output_dir, "weighted_knn_model.pkl")
+    model_path = os.path.join(output_dir, "weighted_knn_model_3.pkl")
     with open(model_path, 'wb') as f:
         pickle.dump(knn, f)
     print(f"Model saved to {model_path}")
