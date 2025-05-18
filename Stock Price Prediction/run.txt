@@ -1,0 +1,13 @@
+- Open cmd in this folder
+- Activate venv + install dependences
+python -m venv venv
+pip install -r requirements.txt
+
+- Run server
+python -m uvicorn app.api_server:app --host localhost --port 8000 --reload
+
+- Run streamlit
+streamlit run ui/app.py --server.port 8501 --server.address localhost
+
+- Open
+* Head to localhost:8501 to use, localhost:8000/docs to check api server

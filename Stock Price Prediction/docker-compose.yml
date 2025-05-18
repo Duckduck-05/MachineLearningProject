@@ -1,0 +1,65 @@
+# index_stock_predictor_mlops/docker-compose.yml
+version: '3.8'
+
+services:
+  stock_api_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hungtrab/stock_prediction:latest
+    command: uvicorn app.api_server:app --host 0.0.0.0 --port 8000 --reload
+    container_name: stock_api_server_ctn
+    ports:
+      - "8000:8000"
+    volumes:
+      - db_volume:/app/app/database
+      - ./app/models_store:/app/app/models_store:ro
+      - data_csv_volume:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - app_net
+    restart: unless-stopped
+
+  scheduler_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hungtrab/stock_prediction:latest
+    container_name: stock_scheduler_worker_ctn
+    command: [ "python", "-m", "app.main_worker" ]
+    volumes:
+      - db_volume:/app/app/database
+      - ./app/models_store:/app/app/models_store
+      - data_csv_volume:/app/data
+    environment:
+      - FASTAPI_URL=http://stock_api_server:8000
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      stock_api_server:
+        condition: service_started
+    networks:
+      - app_net
+    restart: unless-stopped
+  streamlit_ui:
+    build: .
+    command: streamlit run ui/app.py --server.port=8501 --server.address=0.0.0.0
+    image: hungtrab/stock_prediction:latest # Image riêng cho UI
+    container_name: streamlit_ui_ctn
+    ports:
+      - "8501:8501"
+    environment:
+      - FASTAPI_URL_FOR_UI=http://stock_api_server:8000
+    depends_on:
+      - stock_api_server
+    networks:
+      - app_net
+    restart: unless-stopped
+
+volumes:
+  db_volume:
+  data_csv_volume:
+
+
+networks:
+  app_net:
