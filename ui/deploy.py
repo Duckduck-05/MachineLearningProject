@@ -8,7 +8,7 @@ import os
 import time
 
 # --- Configuration ---
-DEFAULT_API_URL = "http://52.64.105.162:8000/"
+DEFAULT_API_URL = "http://52.64.105.162:8000"
 FASTAPI_URL = os.getenv("FASTAPI_URL_FOR_UI", DEFAULT_API_URL)
 
 TICKERS_DISPLAY_CONFIG = {
