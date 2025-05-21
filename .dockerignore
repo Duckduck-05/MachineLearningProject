@@ -1,0 +1,27 @@
+# Virtual environment
+venv/
+.venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+app/__pycache__/
+app/utils/__pycache__/
+model_training/__pycache__/
+model_training/models/__pycache__/
+
+# Test folders
+TEST/
+
+# Additional common files to ignore
+.git/
+.gitignore
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+*.db
+.DS_Store
+.env
+.vscode/
