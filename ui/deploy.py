@@ -305,33 +305,6 @@ else:
      st.warning(f"No prediction history available at all for {selected_ticker_display_name} for the last {days_of_history_slider} days. "
                 "Data might still be populating or worker jobs need to run.")
 
-st.markdown("---")
-
-# Classification History and Accuracy Section
-st.header(f"🔍 Classification Prediction History for {selected_ticker_display_name}")
-
-@st.cache_data(ttl=360, show_spinner="Loading classification history...")
-def load_classification_history_data_from_api(ticker_key_for_api: str, window: int = 30, days_limit: int = 180):
-    print(f"UI: Fetching classification history for {ticker_key_for_api}, window {window} days from {FASTAPI_URL}")
-    try:
-        history_url = f"{FASTAPI_URL}/classification-history"
-        params = {"ticker_key": ticker_key_for_api, "prediction_window": window, "days_limit": days_limit}
-        response = requests.get(history_url, params=params, timeout=30)
-        response.raise_for_status()
-        history_api_response = response.json()
-        history_data = history_api_response.get("data", [])
-
-        if not history_data:
-            return pd.DataFrame()
-        
-        df = pd.DataFrame(history_data)
-        df['prediction_date'] = pd.to_datetime(df['prediction_date'])
-        df.set_index('prediction_date', inplace=True)
-        df.sort_index(ascending=True, inplace=True)
-        return df
-    except Exception as e:
-        print(f"UI Error loading classification history: {e}")
-        return pd.DataFrame()
 
 st.markdown("---")
 # --- Fetch Data Actions ---
